@@ -6,11 +6,10 @@
 /*   By: girts <girts@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 11:22:18 by girts             #+#    #+#             */
-/*   Updated: 2024/06/27 21:24:35 by girts            ###   ########.fr       */
+/*   Updated: 2024/07/12 17:35:16 by girts            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <stdlib.h>
 #include "get_next_line.h"
 
 int	ft_strlen(char *str)
@@ -23,35 +22,73 @@ int	ft_strlen(char *str)
 	return (i);
 }
 
-char	*ft_strjoin(char *s1, char *s2)
+char	*ft_strchr(const char *s, int c)
 {
-	size_t	len1;
-	size_t	len2;
-	char	*res;
+	while (*s != '\0' && *s != (char)c)
+		s++;
+	if (*s == (char)c)
+		return ((char *)s);
+	return (NULL);
+}
+
+char	*ft_strjoin(char const *s1, char const *s2)
+{
+	char	*joined_str;
+	size_t	i;
+	size_t	j;
+
+	i = 0;
+	j = 0;
+	if (s1 == NULL || s2 == NULL)
+		return (NULL);
+	joined_str = (char *)malloc((ft_strlen((char *)s1) \
+				+ ft_strlen((char *)s2) + 1) * sizeof(char));
+	if (joined_str == NULL)
+		return (NULL);
+	while (i < (size_t)ft_strlen((char *)s1))
+	{
+		joined_str[i] = s1[i];
+		i++;
+	}
+	while (j < (size_t)ft_strlen((char *)s2))
+	{
+		joined_str[i + j] = s2[j];
+		j++;
+	}
+	joined_str[ft_strlen((char *)s1) + ft_strlen((char *)s2)] = '\0';
+	return (joined_str);
+}
+
+size_t	ft_strlcpy(char *dst, const char *src, size_t size)
+{
+	size_t	src_len;
 	size_t	i;
 
-	len1 = 0;
-	len2 = 0;
+	src_len = 0;
 	i = 0;
-	if (s1)
-		len1 = ft_strlen(s1);
-	if (s2)
-		len2 = ft_strlen(s2);
-	res = (char *)malloc(len1 + len2 + 1);
-	if (!res)
-		return (NULL);
-	while (i < len1)
+	while (src[src_len] != '\0')
+		src_len++;
+	if (size == 0)
+		return (src_len);
+	while (i < size - 1 && src[i] != '\0')
 	{
-		res[i] = s1[i];
+		dst[i] = src[i];
 		i++;
 	}
-	i = 0;
-	while (i < len2)
-	{
-		res[len1 + i] = s2[i];
-		i++;
-	}
-	res[len1 + len2] = '\0';
-	free(s1);
-	return (res);
+	dst[i] = '\0';
+	return (src_len);
 }
+
+char	*ft_strdup(const char *s)
+{
+	char	*dup;
+	size_t	len;
+
+	len = ft_strlen((char *)s);
+	dup = (char *)malloc((len + 1) * sizeof(char));
+	if (dup == NULL)
+		return (NULL);
+	ft_strlcpy(dup, s, len + 1);
+	return (dup);
+}
+

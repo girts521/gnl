@@ -6,7 +6,7 @@
 /*   By: girts <girts@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 11:40:15 by girts             #+#    #+#             */
-/*   Updated: 2024/06/28 20:28:50 by girts            ###   ########.fr       */
+/*   Updated: 2024/07/13 11:04:42 by girts            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,16 +21,19 @@ int	main(void)
 	int		fd;
 	char	*line;
 
-	fd = open("42big.ber", O_RDONLY);
+	fd = open("multiple_nlx5", O_RDONLY);
 	if (fd == -1)
 	{
 		printf("Error opening file.\n");
 		return (1);
 	}
 	line = get_next_line(fd);
+	// printf("line: %s", line);
 	while (line)
 	{
+		// printf("here\n");
 		printf("%s", line);
+		// printf("\n");
 		free(line);
 		line = get_next_line(fd);
 	}
