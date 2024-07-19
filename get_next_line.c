@@ -6,116 +6,128 @@
 /*   By: girts <girts@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 11:20:19 by girts             #+#    #+#             */
-/*   Updated: 2024/07/12 20:13:18 by girts            ###   ########.fr       */
+/*   Updated: 2024/07/19 21:54:27 by girts            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
-#include <stdio.h>
 
-
-static void free_all(char **buffer, char **line, char **remaining)
+static int	handle_remaining(t_data *data, char	**remaining, \
+								char	**newline_pos)
 {
-    if (buffer && *buffer)
-    {
-        free(*buffer);
-        *buffer = NULL;
-    }
-    if (line && *line)
-    {
-        free(*line);
-        *line = NULL;
-    }
-    if (remaining && *remaining)
-    {
-        free(*remaining);
-        *remaining = NULL;
-    }
+	data->line = *remaining;
+	*remaining = NULL;
+	*newline_pos = ft_strchr(data->line, '\n');
+	if (*newline_pos)
+	{
+		if (*(*newline_pos + 1))
+		{
+			*remaining = ft_strdup((*newline_pos + 1));
+			if (!(*remaining))
+			{
+				free(data->buffer);
+				free(data->line);
+				return (0);
+			}
+		}
+		*(*newline_pos + 1) = '\0';
+		free(data->buffer);
+		return (1);
+	}
+	data->line_len = 0;
+	while (data->line[data->line_len] != '\0')
+		data->line_len++;
+	return (-1);
 }
 
+static int	handle_newline(t_data *data, char	**newline_pos, char	**remaining)
+{
+	if (*(*newline_pos + 1))
+	{
+		*remaining = ft_strdup((*newline_pos + 1));
+		if (!(*remaining))
+		{
+			free(data->buffer);
+			free(data->line);
+			return (0);
+		}
+	}
+	*(*newline_pos + 1) = '\0';
+	data->buffer_len = *newline_pos - data->buffer + 1;
+	return (1);
+}
 
+static int	get_line(t_data *data, int fd, char	**newline_pos, char	**remaining)
+{
+	int			res;
 
-char    *get_next_line(int fd)
+	data->bytes_read = read(fd, data->buffer, BUFFER_SIZE);
+	if (data->bytes_read <= 0)
+		return (2);
+	data->buffer[data->bytes_read] = '\0';
+	data->buffer_len = data->bytes_read;
+	*newline_pos = ft_strchr(data->buffer, '\n');
+	if (*newline_pos)
+	{
+		res = handle_newline(data, newline_pos, remaining);
+		if (res == 0)
+			return (0);
+	}
+	res = handle_buffer(data, newline_pos);
+	if (res == 0)
+		return (0);
+	else if (res == 1)
+		return (1);
+	return (-1);
+}
+
+static int	init_data(t_data *data, int fd, char **newline_pos, \
+						char **remaining)
+{
+	int	res;
+
+	res = -1;
+	data->line_len = 0;
+	data->buffer_len = 0;
+	data->line = NULL;
+	data->buffer = (char *)malloc(BUFFER_SIZE + 1);
+	if (!data->buffer)
+		return (0);
+	while (1)
+	{
+		if (*remaining)
+			res = handle_remaining(data, remaining, newline_pos);
+		if (res && res >= 0)
+			return (res);
+		res = get_line(data, fd, newline_pos, remaining);
+		if (res == 2)
+			break ;
+		else if (res >= 0)
+			return (res);
+	}
+	return (-1);
+}
+
+char	*get_next_line(int fd)
 {
 	static char	*remaining = NULL;
-	int			bytes_read;
-	char		*buffer;
-	char        *line;
-	char		*temp;
+	char		*newline_pos;
+	t_data		data;
+	int			res;
 
 	if (fd < 0 || BUFFER_SIZE <= 0)
-        return (NULL);
-	temp = NULL;
-	line = NULL;
-	bytes_read = 0;
-	buffer = (char *)malloc(BUFFER_SIZE + 1);
-    if (!buffer)
+		return (0);
+	res = init_data(&data, fd, &newline_pos, &remaining);
+	if (res == 0)
+		return (NULL);
+	else if (res == 1)
+		return (data.line);
+	free(data.buffer);
+	if (data.bytes_read < 0 || (data.bytes_read == 0 && \
+			(!data.line || !data.line[0])))
 	{
-		free_all(&buffer, &line, &remaining);
+		free(data.line);
 		return (NULL);
 	}
-	while(1)
-	{
-		if (remaining)
-		{
-			if (line)
-				temp = ft_strjoin(line, remaining);
-			else if (line == NULL)
-				temp = ft_strdup(remaining);
-			if (temp == NULL)
-			{
-				free_all(&buffer, &line, &remaining);
-				return (NULL);
-			}
-			free(line);
-			free(remaining);
-			remaining = NULL;
-			line = temp;
-			temp = NULL;
-		}
-		bytes_read = read(fd, buffer, BUFFER_SIZE);
-		if (bytes_read <= 0)
-			break;
-		buffer[bytes_read] = '\0';
-		if (line)
-			temp = ft_strjoin(line, buffer);
-		else if (line == NULL)
-			temp = ft_strdup(buffer);
-		if (temp == NULL)
-		{
-			free_all(&buffer, &line, &remaining);
-			return (NULL);
-		}
-		free(line);
-		line = temp;
-		temp = NULL;
-		temp = ft_strchr(line, '\n');
-		if (temp)
-		{
-			if (*(temp + 1))
-			{
-				remaining = (char *)malloc(ft_strlen(temp + 1) + 1);
-				if (!remaining)
-				{
-					free_all(&buffer, &line, &remaining);
-					return (NULL);
-				}
-				ft_strlcpy(remaining, temp + 1, ft_strlen(temp + 1) + 1);
-			}
-			temp = temp + 1;
-			*temp = '\0';
-			temp = NULL;
-			free(buffer);
-			buffer = NULL;
-			return (line);
-		}
-	}
-	if (!line)
-	{
-		free_all(&buffer, &line, &remaining);
-		return (NULL);
-	}
-	free(buffer);
-	buffer = NULL;
-	return (line);
+	return (data.line);
 }

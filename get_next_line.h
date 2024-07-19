@@ -6,7 +6,7 @@
 /*   By: girts <girts@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 11:19:59 by girts             #+#    #+#             */
-/*   Updated: 2024/07/12 17:21:59 by girts            ###   ########.fr       */
+/*   Updated: 2024/07/19 21:54:55 by girts            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,17 +15,27 @@
 
 # include <stdlib.h>
 # include <unistd.h>
+# include <stdio.h>
+
+typedef struct data_s
+{
+	char	*buffer;
+	char	*line;
+	int		bytes_read;
+	size_t	line_len;
+	size_t	buffer_len;
+}	t_data;
 
 char	*get_next_line(int fd);
-char	*ft_strjoin(char const *s1, char const *s2);
 int		ft_strlen(char *str);
-char	*ft_strchr(const char *s, int c);
-size_t	ft_strlcpy(char *dst, const char *src, size_t size);
+char	*ft_strchr( char *s, int c);
 char	*ft_strdup(const char *s);
-
+void	*ft_memcpy(void *dest, const void *src, size_t n);
+char	*ft_realloc(char *ptr, size_t size);
+int		handle_buffer(t_data *data, char	**newline_pos);
 
 # ifndef BUFFER_SIZE
-#  define BUFFER_SIZE 42
+#  define BUFFER_SIZE 1
 # endif
 
 #endif
