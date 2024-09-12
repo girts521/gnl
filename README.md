@@ -39,7 +39,7 @@
 Clone this repository and compile the source files along with your project:
 
 ```bash
-git clone https://github.com/yourusername/get_next_line.git
+git clone https://github.com/girts521/gnl.git
 cd get_next_line
 make
 ```
